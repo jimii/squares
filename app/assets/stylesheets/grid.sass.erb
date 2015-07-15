@@ -1,0 +1,15 @@
+#grid
+  width: 1000px
+  height: 1000px
+  background-image: url('<%= asset_path 'grid.png' %>')
+  position: relative
+
+  .spot
+    position: absolute
+    width: <%= Spot::DIMENSION %>px
+    height: <%= Spot::DIMENSION %>px
+    background: green
+    &:hover
+      cursor: pointer
+      background: red
+

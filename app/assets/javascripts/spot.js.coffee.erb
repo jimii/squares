@@ -1,0 +1,120 @@
+### Spot module ###
+
+spotModule = (($) ->
+    s = {}
+
+    ### Settings ###
+
+    s.settings =
+        boardId: '#grid'
+        spotClass: '.spot'
+        spotPrefix: 'spot-'
+        correctDimension: <%= Spot::H_DIMENSION %>
+        draggedX: 0
+        draggedY: 0
+
+    ### Triggers ###
+
+    s.setTriggers = ->
+        # drag & drop
+        $(s.settings.spotClass).draggable
+            start: s.dragStart
+            stop: s.dragStop
+        # click & new
+        $(s.settings.boardId).click (e) ->
+            parentOffset = $(this).offset()
+            x = parseInt(e.pageX - parentOffset.left)
+            y = parseInt(e.pageY - parentOffset.top)
+            name = 'Spot#' + x + 'x' + y
+            s.addSpot name, x, y
+            return
+        return
+
+    ### Call dragstart ###
+
+    s.dragStart = ->
+        s.settings.draggedX = $(this).position().left
+        s.settings.draggedY = $(this).position().top
+        return
+
+    ### Call dragstop ###
+
+    s.dragStop = ->
+        # get spot ID
+        spotId = $(this).attr('id')
+        spotId = spotId.replace(s.settings.spotPrefix, '')
+        # get x position
+        x = $(this).position().left + s.settings.correctDimension
+        # get y position
+        y = $(this).position().top + s.settings.correctDimension
+        s.updateAttributes spotId, x, y
+        return
+
+    ### Update Spot ###
+
+    s.updateAttributes = (id, x, y) ->
+        dataToServer = spot:
+            position_x: x
+            position_y: y
+        $.ajax
+            type: 'PUT'
+            url: '/spots/' + id + '.json'
+            data: JSON.stringify(dataToServer)
+            contentType: 'application/json'
+            dataType: 'json'
+            error: (xhr, msg, error) ->
+                alert 'Nie można umieścić'
+                s.rollbackSpot id, s.settings.draggedX, s.settings.draggedY
+                return
+        return
+
+    ### Add Spot ###
+
+    s.addSpot = (name, x, y) ->
+        dataToServer = spot:
+            name: name
+            position_x: x
+            position_y: y
+        $.ajax
+            type: 'POST'
+            url: '/spots'
+            data: JSON.stringify(dataToServer)
+            contentType: 'application/json'
+            dataType: 'json'
+            error: (xhr, msg, error) ->
+                alert 'Nie można umieścić'
+                return
+            success: (data) ->
+                # create spot
+                newspot = jQuery('<div/>',
+                    id: s.settings.spotPrefix + data.id
+                    class: s.settings.spotClass.replace('.', '')
+                    css:
+                        top: y - s.settings.correctDimension
+                        left: x - s.settings.correctDimension)
+                # append
+                $(s.settings.boardId).append newspot
+                # make it draggable
+                newspot.draggable
+                    start: s.dragStart
+                    stop: s.dragStop
+                return
+        return
+
+    ### Rollback Spot ###
+
+    s.rollbackSpot = (id, x, y) ->
+        $('#' + s.settings.spotPrefix + id).css('top', y).css 'left', x
+        return
+
+    ### Init Module ###
+
+    s.init = ->
+        s.setTriggers()
+        return
+
+    s
+)(jQuery)
+$(document).ready ->
+    spotModule.init()
+    return

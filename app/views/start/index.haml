@@ -1,0 +1,3 @@
+#grid
+  - @spots.each do |spot|
+    .spot{id: "spot-#{spot.id}", :data => {x: spot.position_x, y: spot.position_y}, :style => "top: #{spot.corners[:up_left_y]}px; left: #{spot.corners[:up_left_x]}px;" }

@@ -1,0 +1,8 @@
+== README
+
+Test app - squares on grid
+
+* bundle install
+* rake db:setup
+* rspec
+* rails s
